@@ -54,6 +54,11 @@ def key_hook(event):
                 char = char.upper()
             typed_buffer.append(char)
 
+EN_TO_RU = str.maketrans(
+    "qwertyuiop[]asdfghjkl;'zxcvbnm,./`QWERTYUIOP{}ASDFGHJKL:\"ZXCVBNM<>?~",
+    "йцукенгшщзхъфывапролджэячсмитьбю.ёЙЦУКЕНГШЩЗХЪФЫВАПРОЛДЖЭЯЧСМИТЬБЮ,Ё"
+)
+
 def process_translation():
     global typed_buffer
     try:
@@ -80,6 +85,9 @@ def process_translation():
             
         # Если текст взят из нашей памяти, физически стираем его с экрана бэкспейсами
         if used_buffer:
+            # Магия: превращаем физические кнопки в русские буквы (решает баги раскладки)
+            text_to_translate = text_to_translate.translate(EN_TO_RU)
+            
             for _ in range(len(typed_buffer)):
                 keyboard.send('backspace')
                 time.sleep(0.005) # мизерная пауза, чтобы консоль не проглотила нажатия
