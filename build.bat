@@ -1,6 +1,6 @@
 @echo off
 echo Installing dependencies...
-python -m pip install keyboard pyperclip deep-translator pystray Pillow pyinstaller
+python -m pip install keyboard pyperclip deep-translator pystray Pillow pyinstaller mouse
 
 echo.
 echo Building executable...

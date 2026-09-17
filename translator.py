@@ -2,6 +2,7 @@ import sys
 import os
 import winreg
 import keyboard
+import mouse
 import pyperclip
 import time
 import threading
@@ -114,8 +115,16 @@ def exit_action(icon, item):
     icon.stop()
     os._exit(0)
 
+def mouse_hook(event):
+    # Если произошло нажатие любой кнопки мыши — сбрасываем буфер
+    if isinstance(event, mouse.ButtonEvent) and event.event_type == 'down':
+        typed_buffer.clear()
+
 def main():
     add_to_startup()
+    
+    # Запускаем перехватчик мыши
+    mouse.hook(mouse_hook)
     
     # 1. Запускаем "кейлоггер" (шпиона за текстом)
     keyboard.hook(key_hook)
