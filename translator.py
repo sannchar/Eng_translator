@@ -6,8 +6,10 @@ import mouse
 import pyperclip
 import time
 import threading
-from deep_translator import MyMemoryTranslator
-from googletrans import Translator as GoogleTrans
+import urllib.request
+import urllib.parse
+import json
+import translators as ts
 import pystray
 from PIL import Image, ImageDraw
 
@@ -15,6 +17,15 @@ HOTKEY = 'ctrl+alt+t'
 DELAY = 0.05
 
 typed_buffer = []
+icon_instance = None
+
+def notify(message):
+    global icon_instance
+    if icon_instance:
+        try:
+            icon_instance.notify(message, "AutoTranslator")
+        except:
+            pass
 
 def add_to_startup():
     try:
@@ -94,18 +105,26 @@ def process_translation():
                 time.sleep(0.005) # мизерная пауза, чтобы консоль не проглотила нажатия
             typed_buffer.clear()
             
-        # Переводим: сначала пробуем Google (новую библиотеку), если не вышло — MyMemory
+        # Переводим: сверхнадежная цепочка из 3 независимых переводчиков
         try:
-            translator = GoogleTrans()
-            translated_text = translator.translate(text_to_translate, src='ru', dest='en').text
+            # 1. Быстрый Google (через API браузерного расширения, почти не имеет лимитов)
+            url = "https://translate.googleapis.com/translate_a/single?client=gtx&sl=ru&tl=en&dt=t&q=" + urllib.parse.quote(text_to_translate)
+            req = urllib.request.Request(url, headers={'User-Agent': 'Mozilla/5.0'})
+            with urllib.request.urlopen(req, timeout=3) as response:
+                result = json.loads(response.read().decode())
+                translated_text = "".join([x[0] for x in result[0]])
         except Exception:
             try:
-                # MyMemoryTranslator падает, если текст длиннее 500 символов
-                translator = MyMemoryTranslator(source='ru-RU', target='en-US')
-                translated_text = translator.translate(text_to_translate)
+                # 2. Bing (очень стабильный веб-скрапер)
+                translated_text = ts.translate_text(text_to_translate, translator='bing', from_language='ru', to_language='en')
             except Exception:
-                # Если всё упало (текст слишком огромный)
-                return
+                try:
+                    # 3. Yandex
+                    translated_text = ts.translate_text(text_to_translate, translator='yandex', from_language='ru', to_language='en')
+                except Exception:
+                    # Если упали абсолютно все
+                    notify("Слишком много переводов! Подождите пару минут.")
+                    return
         
         # Вставляем
         pyperclip.copy(translated_text)
@@ -139,6 +158,7 @@ def mouse_hook(event):
         typed_buffer.clear()
 
 def main():
+    global icon_instance
     add_to_startup()
     
     # Запускаем перехватчик мыши
@@ -156,8 +176,8 @@ def main():
         pystray.MenuItem('AutoTranslator', lambda: None, enabled=False),
         pystray.MenuItem('Выход', exit_action)
     )
-    icon = pystray.Icon("AutoTranslator", image, "AutoTranslator (Ctrl+Alt+T)", menu)
-    icon.run()
+    icon_instance = pystray.Icon("AutoTranslator", image, "AutoTranslator (Ctrl+Alt+T)", menu)
+    icon_instance.run()
 
 if __name__ == '__main__':
     main()

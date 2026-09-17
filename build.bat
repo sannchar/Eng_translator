@@ -1,6 +1,6 @@
 @echo off
 echo Installing dependencies...
-python -m pip install keyboard pyperclip deep-translator pystray Pillow pyinstaller mouse "googletrans==4.0.0-rc1"
+python -m pip install keyboard pyperclip pystray Pillow pyinstaller mouse translators
 
 echo.
 echo Building executable...
