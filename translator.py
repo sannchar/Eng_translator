@@ -6,7 +6,7 @@ import mouse
 import pyperclip
 import time
 import threading
-from deep_translator import MyMemoryTranslator
+from deep_translator import MyMemoryTranslator, GoogleTranslator
 import pystray
 from PIL import Image, ImageDraw
 
@@ -93,9 +93,13 @@ def process_translation():
                 time.sleep(0.005) # мизерная пауза, чтобы консоль не проглотила нажатия
             typed_buffer.clear()
             
-        # Переводим
-        translator = MyMemoryTranslator(source='ru-RU', target='en-US')
-        translated_text = translator.translate(text_to_translate)
+        # Переводим: сначала пробуем Google, если он заблокировал IP — падаем на MyMemory
+        try:
+            translator = GoogleTranslator(source='ru', target='en')
+            translated_text = translator.translate(text_to_translate)
+        except Exception:
+            translator = MyMemoryTranslator(source='ru-RU', target='en-US')
+            translated_text = translator.translate(text_to_translate)
         
         # Вставляем
         pyperclip.copy(translated_text)
