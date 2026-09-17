@@ -1,7 +1,7 @@
 # 🌐 AutoTranslator
 
 ## 📺 Демонстрация работы
-https://github.com/sannchar/Eng_translator/raw/main/demo.mp4
+<video src="demo.mp4" controls="controls" muted="muted" style="max-height:640px;"></video>
 
 ---
 
