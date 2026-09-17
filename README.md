@@ -1,7 +1,7 @@
 # 🌐 AutoTranslator
 
 ## 📺 Демонстрация работы
-<video src="demo.mp4" controls="controls" muted="muted" style="max-height:640px;"></video>
+![Демонстрация](demo.gif)
 
 ---
 
