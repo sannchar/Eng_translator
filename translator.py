@@ -7,10 +7,32 @@ import pystray
 from PIL import Image, ImageDraw
 import sys
 import os
+import winreg
 
 # Настройки
 HOTKEY = 'ctrl+alt+t'
 DELAY = 0.05
+
+def add_to_startup():
+    try:
+        # Проверяем, запущена ли программа как скомпилированный .exe
+        if getattr(sys, 'frozen', False):
+            exe_path = sys.executable
+            key_path = r"Software\Microsoft\Windows\CurrentVersion\Run"
+            
+            # Открываем ветку реестра автозагрузки
+            key = winreg.OpenKey(winreg.HKEY_CURRENT_USER, key_path, 0, winreg.KEY_ALL_ACCESS)
+            
+            try:
+                # Проверяем, нет ли нас уже там
+                winreg.QueryValueEx(key, "AutoTranslator")
+            except FileNotFoundError:
+                # Если нет — добавляем!
+                winreg.SetValueEx(key, "AutoTranslator", 0, winreg.REG_SZ, f'"{exe_path}"')
+                
+            winreg.CloseKey(key)
+    except Exception:
+        pass
 
 def process_translation():
     try:
@@ -83,6 +105,9 @@ def exit_action(icon, item):
     os._exit(0)
 
 def main():
+    # Прописываемся в автозагрузку при запуске
+    add_to_startup()
+    
     # Регистрируем хоткей
     keyboard.add_hotkey(HOTKEY, on_hotkey_pressed)
     
